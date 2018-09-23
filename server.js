@@ -26,6 +26,7 @@ app.get('/location', getLocation); //google API
 app.get('/weather', getWeather); //darkskies API
 app.get('/yelp', getRestaurants); // yelp API
 app.get('/movies', getMovies); // the movie database API
+app.get('/meetup'), getMeetup); // meetup API 
 
 // Tells the server to start listening to the PORT, and console.logs to tell us it's on.
 app.listen(PORT, () => console.log(`LAB-08 - Listening on ${PORT}`));
