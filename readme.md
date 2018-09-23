@@ -38,6 +38,10 @@ This project uses the following technologies:
 09-22-2018 11:00pm - (DC) Finished refactoring for DRY lookup function and SQL.
 09-22-2018 11:55pm - (DC) Set-up remaining scaffold after Lab-08 completion.
 
+09-23-2018 4:00pm - (DC) Finalized Meetup Connection for City Explorer
+
+
+
 ## Credits and Collaborations
 * Front end starter code provided by Samm Hamm and Allie Grampa
 * Utilizes outside APIs from google maps, yelp, darkskies, and the movie database, meetUp, and the Hiking Project

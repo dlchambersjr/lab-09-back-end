@@ -27,7 +27,7 @@ app.get('/weather', getWeather); //darkskies API
 app.get('/yelp', getRestaurants); // yelp API
 app.get('/movies', getMovies); // the movie database API
 app.get('/meetups', getMeetups); // meetup API
-// app.get('/trails', getTrails); //The Hiking Guide API
+app.get('/trails', getTrails); //The Hiking Guide API
 
 // Tells the server to start listening to the PORT, and console.logs to tell us it's on.
 app.listen(PORT, () => console.log(`LAB-09 - Listening on ${PORT}`));
@@ -179,41 +179,42 @@ MeetupResults.prototype = {
   }
 };
 
-// function TrailResults(trail) {
-//   this.tableName = trail.tableName;
-//   this.name = trail.name;
-//   this.trail_url = this.trail_url;
-//   this.location = this.location;
-//   this.length = this.length;
-//   this.condition_date = this.condition_date;
-//   this.condition_time = this.condition_time;
-//   this.conditions = this.conditions;
-//   this.stars = this.stars;
-//   this.star_votes = this.star_votes;
-//   this.summary = this.summary;
-//   this.created_at = Date.now();
-//   this.location_id = this.location_id;
-// }
+function TrailsResults(trail) {
+  this.tableName = trail.tableName;
+  this.name = trail.name;
+  this.trail_url = this.url;
+  this.location = this.location;
+  this.length = this.length;
+  this.condition_date = this.conditiondate.slice(0, 10);
+  this.condition_time = this.conditiontime.slice(12, 19);
+  this.conditions = this.conditionDetailss;
+  this.stars = this.stars;
+  this.star_votes = this.starVotes;
+  this.summary = this.summary;
+  this.created_at = Date.now();
+  this.location_id = this.location_id;
+}
 
-// TrailResults.prototype = {
-//   save: function (location_id) {
-//     const SQL = `INSERT INTO ${this.tableName} (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
-//     const values = [
-//       this.name,
-//       this.trail_url,
-//       this.location,
-//       this.length,
-//       this.condition_date,
-//       this.condition_time,
-//       this.conditions,
-//       this.stars,
-//       this.star_votes,
-//       this.summary,
-//       this.created_at,
-//       this.location_id
-//     ];
-//   }
-// }
+TrailsResults.prototype = {
+  save: function (location_id) {
+    const SQL = `INSERT INTO ${this.tableName} (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
+    const values = [
+      this.name,
+      this.trail_url,
+      this.location,
+      this.length,
+      this.condition_date,
+      this.condition_time,
+      this.conditions,
+      this.stars,
+      this.star_votes,
+      this.summary,
+      this.created_at,
+      location_id
+    ];
+    client.query(SQL, values);
+  }
+}
 
 // Define table names, lookup, and deleteByLoaction for each process
 
@@ -233,9 +234,9 @@ MeetupResults.tableName = 'meetups';
 MeetupResults.lookup = lookup;
 MeetupResults.deleteByLocationId = deleteByLocationId;
 
-// TrailsResults.tableName = 'trails';
-// TrailsResults.lookup = lookup;
-// TrailsResults.deleteByLocationId = deleteByLocationId;
+TrailsResults.tableName = 'trails';
+TrailsResults.lookup = lookup;
+TrailsResults.deleteByLocationId = deleteByLocationId;
 
 // +++++++++++++++++++++++++++
 // HELPER FUNCTIONS START HERE
@@ -442,7 +443,40 @@ function getMeetups(request, response) {
   })
 }
 
+function getTrails(request, response) {
+  TrailsResults.lookup({
+    tableName: TrailsResults.tableName,
+    id: request.query.data.id,
 
+    cacheMiss: function () {
+
+      const url = `https://www.hikingproject.com/data/get-trails?lat=${request.query.data.latitude}&lon=${request.query.data.longitude}&maxDistance=10&key=${process.env.HIKING_PROJECT_API_KEY}`;
+
+      superagent.get(url)
+        .then(result => {
+          const trailsSummary = result.body.trails.map(trail => {
+            const eachTrail = new TrailsResults(trail);
+            eachTrail.save(request.data.query.id);
+            return eachTrail;
+          });
+          response.send(trailsSummary);
+        })
+        .catch(error => processError(error, response));
+    },
+    cacheHit: function (resultsArray) {
+      let ageOfData = (Date.now() - resultsArray[0].created_at) / 1000(1000 * 60);
+
+      if (ageOfData > 30) {
+        deleteByLocationId(
+          TrailsResults.tableName,
+          request.query.data.id
+        );
+      } else {
+        response.send(resultsArray);
+      }
+    }
+  })
+}
 
 
 
