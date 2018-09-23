@@ -172,12 +172,41 @@ MeetupResults.prototype = {
   }
 };
 
+function TrailResults(trail) {
+  this.tableName = trail.tableName;
+  this.name = trail.name;
+  this.trail_url = this.trail_url;
+  this.location = this.location;
+  this.length = this.length;
+  this.condition_date = this.condition_date;
+  this.condition_time = this.condition_time;
+  this.conditions = this.conditions;
+  this.stars = this.stars;
+  this.star_votes = this.star_votes;
+  this.summary = this.summary;
+  this.created_at = Date.now();
+  this.location_id = this.location_id;
+}
 
-
-
-
-
-
+TrailResults.prototype = {
+  save: function (location_id) {
+    const SQL = `INSERT INTO ${this.tableName} (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
+    const values = [
+      this.name,
+      this.trail_url,
+      this.location,
+      this.length,
+      this.condition_date,
+      this.condition_time,
+      this.conditions,
+      this.stars,
+      this.star_votes,
+      this.summary,
+      this.created_at,
+      this.location_id
+    ];
+  }
+}
 
 // Define table names, lookup, and deleteByLoaction for each process
 
@@ -191,11 +220,15 @@ RestaurantResult.deleteByLocationId = deleteByLocationId;
 
 MovieResults.tableName = 'movies';
 MovieResults.lookup = lookup;
-MovieResults.deleteByLocationId = deleteByLocationId
+MovieResults.deleteByLocationId = deleteByLocationId;
 
 MeetupResults.tableName = 'meetups';
 MeetupResults.lookup = lookup;
-MeetupResults.deleteByLocationId = deleteByLocationId
+MeetupResults.deleteByLocationId = deleteByLocationId;
+
+MeetupResults.tableName = 'trails';
+MeetupResults.lookup = lookup;
+MeetupResults.deleteByLocationId = deleteByLocationId;
 
 // +++++++++++++++++++++++++++
 // HELPER FUNCTIONS START HERE
@@ -311,7 +344,7 @@ function getRestaurants(request, response) {
   });
 }
 
-// //Movies helper function
+//Movies helper function
 function getMovies(request, response) {
   MovieResults.lookup({
     tableName: MovieResults.tableName,
@@ -346,7 +379,7 @@ function getMovies(request, response) {
   })
 }
 
-// //Meetups helper function
+//Meetups helper function
 function getMeetups(request, response) {
   MeetupResults.lookup({
     tableName: MeetupResults.tableName,

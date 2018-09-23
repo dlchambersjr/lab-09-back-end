@@ -1,0 +1,9 @@
+<!-- Template for trail data -->
+<script type="text/x-handlebars-template" id="trails-results-template">
+  <li>
+    <p>Hike Name: <a href="{{ trail_url }}">{{ name }}</a>, Location: {{ location }}, Distance: {{ length }} miles</p>
+    <p>On {{ condition_date }} at {{ condition_time }}, trail conditions were reported as: {{ conditions }}</p>
+    <p>This trail has a rating of {{ stars }} stars (out of {{ star_votes }} votes)</p>
+    <p>{{ summary }}</p>
+  </li>
+</script>
