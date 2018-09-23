@@ -1,7 +1,7 @@
-# lab-06-back-end
+# lab-09-back-end
 
-**Author**: David Chambers and Joey Eisenzimmer and Andy Fields
-**Version**: 1.2.0
+**Author**: David Chambers, Joey Eisenzimmer, Andy Fields, Tim Li
+**Version**: 2.0.0
 
 ## Overview
 We are creating a back end server to provide requested information about a cities weather, restaurants, movies, and news.
@@ -16,10 +16,13 @@ To install this package on your local system:
 This project uses the following technologies:
 * JavaScript
 * Node.js
-* ```npm i express```
-* ```npm i superagent```
-* ```npm i dotenv```
-* ```npm i cors```
+* express: ```npm i express```
+* superagent: ```npm i superagent```
+* dotenv: ```npm i dotenv```
+* cors: ```npm i cors```
+* postgres: ```npm i pg ```
+* Deployed live on Heroku: 
+
 ## Change Log
 
 09-18-2018 10:00am - (DC/JE) Created initial scaffolding
@@ -30,6 +33,11 @@ This project uses the following technologies:
 09-19-2018 1:30pm - (AF/DC) Wrapup
 09-19-2018 10:00pm - (DC) Refactored Code
 
+09-20-2018 9:00am - 1:30pm (DC/TL) - Worked on transitioning to a single lookup feature for each API and storing the data in a SQL Database.
+
+09-22-2018 11:00pm - (DC) Finished refactoring for DRY lookup function and SQL.
+09-22-2018 11:55pm - (DC) Set-up remaining scaffold after Lab-08 completion.
+
 ## Credits and Collaborations
 * Front end starter code provided by Samm Hamm and Allie Grampa
-* Utilizes outside APIs from google maps, yelp, darkskies, and the movie database.
+* Utilizes outside APIs from google maps, yelp, darkskies, and the movie database, meetUp, and the Hiking Project
