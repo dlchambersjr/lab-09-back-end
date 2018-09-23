@@ -26,10 +26,11 @@ app.get('/location', getLocation); //google API
 app.get('/weather', getWeather); //darkskies API
 app.get('/yelp', getRestaurants); // yelp API
 app.get('/movies', getMovies); // the movie database API
-app.get('/meetup', getMeetups); // meetup API
+app.get('/meetups', getMeetups); // meetup API
+// app.get('/trails', getTrails); //The Hiking Guide API
 
 // Tells the server to start listening to the PORT, and console.logs to tell us it's on.
-app.listen(PORT, () => console.log(`LAB-08 - Listening on ${PORT}`));
+app.listen(PORT, () => console.log(`LAB-09 - Listening on ${PORT}`));
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++
 // CONSTRUCTOR FUNCTIONS ANS PROTOTYPES START HERE //
@@ -151,62 +152,68 @@ MovieResults.prototype = {
 //Constructor function for Meetup API
 function MeetupResults(meetup) {
   this.tableName = 'meetups';
-  this.name = meetup.name;
+  this.name = meetup.group.name;
   this.link = meetup.link;
-  this.host = meetup.host;
+  this.host = meetup.venue.name;
+  this.creation_date = new Date(meetup.created).toString().slice(0, 15);
   this.created_at = Date.now();
 }
 
 MeetupResults.prototype = {
   save: function (location_id) {
-    const SQL = `INSERT INTO ${this.tableName} (name, link, host, created_at, location_id) VALUES ($1, $2, $3, $4, $5);`;
+    const SQL = `INSERT INTO ${this.tableName} (name, link, host, creation_date, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6);`;
     const values = [
       this.name,
       this.link,
       this.host,
+      this.creation_date,
       this.created_at,
       location_id
     ];
+
+    console.log('+++++++++++++++++++++++++++++\n\n')
+    console.log(SQL, values);
+    console.log('\n\n+++++++++++++++++++++++++++++')
 
     client.query(SQL, values);
   }
 };
 
-function TrailResults(trail) {
-  this.tableName = trail.tableName;
-  this.name = trail.name;
-  this.trail_url = this.trail_url;
-  this.location = this.location;
-  this.length = this.length;
-  this.condition_date = this.condition_date;
-  this.condition_time = this.condition_time;
-  this.conditions = this.conditions;
-  this.stars = this.stars;
-  this.star_votes = this.star_votes;
-  this.summary = this.summary;
-  this.created_at = Date.now();
-  this.location_id = this.location_id;
-}
+// function TrailResults(trail) {
+//   this.tableName = trail.tableName;
+//   this.name = trail.name;
+//   this.trail_url = this.trail_url;
+//   this.location = this.location;
+//   this.length = this.length;
+//   this.condition_date = this.condition_date;
+//   this.condition_time = this.condition_time;
+//   this.conditions = this.conditions;
+//   this.stars = this.stars;
+//   this.star_votes = this.star_votes;
+//   this.summary = this.summary;
+//   this.created_at = Date.now();
+//   this.location_id = this.location_id;
+// }
 
-TrailResults.prototype = {
-  save: function (location_id) {
-    const SQL = `INSERT INTO ${this.tableName} (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
-    const values = [
-      this.name,
-      this.trail_url,
-      this.location,
-      this.length,
-      this.condition_date,
-      this.condition_time,
-      this.conditions,
-      this.stars,
-      this.star_votes,
-      this.summary,
-      this.created_at,
-      this.location_id
-    ];
-  }
-}
+// TrailResults.prototype = {
+//   save: function (location_id) {
+//     const SQL = `INSERT INTO ${this.tableName} (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
+//     const values = [
+//       this.name,
+//       this.trail_url,
+//       this.location,
+//       this.length,
+//       this.condition_date,
+//       this.condition_time,
+//       this.conditions,
+//       this.stars,
+//       this.star_votes,
+//       this.summary,
+//       this.created_at,
+//       this.location_id
+//     ];
+//   }
+// }
 
 // Define table names, lookup, and deleteByLoaction for each process
 
@@ -226,9 +233,9 @@ MeetupResults.tableName = 'meetups';
 MeetupResults.lookup = lookup;
 MeetupResults.deleteByLocationId = deleteByLocationId;
 
-MeetupResults.tableName = 'trails';
-MeetupResults.lookup = lookup;
-MeetupResults.deleteByLocationId = deleteByLocationId;
+// TrailsResults.tableName = 'trails';
+// TrailsResults.lookup = lookup;
+// TrailsResults.deleteByLocationId = deleteByLocationId;
 
 // +++++++++++++++++++++++++++
 // HELPER FUNCTIONS START HERE
@@ -346,6 +353,7 @@ function getRestaurants(request, response) {
 
 //Movies helper function
 function getMovies(request, response) {
+
   MovieResults.lookup({
     tableName: MovieResults.tableName,
     id: request.query.data.id,
@@ -381,20 +389,40 @@ function getMovies(request, response) {
 
 //Meetups helper function
 function getMeetups(request, response) {
+
+  console.log('+++++++++++++++++++++++++++++\n\n')
+  console.log('STARTING GETMEETUPS');
+  console.log('\n\n+++++++++++++++++++++++++++++')
+
   MeetupResults.lookup({
     tableName: MeetupResults.tableName,
     id: request.query.data.id,
     cacheMiss: function () {
 
-      const url = `https://api.meetup.com/find/upcoming_events?key=${process.env.MEETUP_API_Key}&lon=${request.query.data.longitude}&page=5&lat=${request.query.data.latitude}`;
+      console.log('+++++++++++++++++++++++++++++\n\n')
+      console.log(request.query.data.longitude, request.query.data.latitude);
+      console.log('\n\n+++++++++++++++++++++++++++++')
+
+
+      const url = `https://api.meetup.com/find/upcoming_events?key=${process.env.MEETUP_API_KEY}&lon=${request.query.data.longitude}&page=5&lat=${request.query.data.latitude}`;
 
       superagent.get(url)
         .then(result => {
-          const meetupSummary = result.body.results.map(meetup => {
+
+          console.log('+++++++++++++++++++++++++++++\n\n')
+          console.log(result);
+          console.log('\n\n+++++++++++++++++++++++++++++')
+
+          const meetupSummary = result.body.events.map(meetup => {
             const eachMeetup = new MeetupResults(meetup);
             eachMeetup.save(request.query.data.id);
             return eachMeetup;
           });
+
+          console.log('+++++++++++++++++++++++++++++\n\n')
+          console.log(meetupSummary);
+          console.log('\n\n+++++++++++++++++++++++++++++')
+
           response.send(meetupSummary);
         })
         .catch(error => processError(error, response));
