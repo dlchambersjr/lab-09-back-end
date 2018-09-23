@@ -26,7 +26,7 @@ app.get('/location', getLocation); //google API
 app.get('/weather', getWeather); //darkskies API
 app.get('/yelp', getRestaurants); // yelp API
 app.get('/movies', getMovies); // the movie database API
-app.get('/meetup'), getMeetup); // meetup API 
+app.get('/meetup', getMeetups); // meetup API
 
 // Tells the server to start listening to the PORT, and console.logs to tell us it's on.
 app.listen(PORT, () => console.log(`LAB-08 - Listening on ${PORT}`));
@@ -148,6 +148,37 @@ MovieResults.prototype = {
   }
 };
 
+//Constructor function for Meetup API
+function MeetupResults(meetup) {
+  this.tableName = 'meetups';
+  this.name = meetup.name;
+  this.link = meetup.link;
+  this.host = meetup.host;
+  this.created_at = Date.now();
+}
+
+MeetupResults.prototype = {
+  save: function (location_id) {
+    const SQL = `INSERT INTO ${this.tableName} (name, link, host, created_at, location_id) VALUES ($1, $2, $3, $4, $5);`;
+    const values = [
+      this.name,
+      this.link,
+      this.host,
+      this.created_at,
+      location_id
+    ];
+
+    client.query(SQL, values);
+  }
+};
+
+
+
+
+
+
+
+
 // Define table names, lookup, and deleteByLoaction for each process
 
 WeatherResult.tableName = 'weathers';
@@ -161,6 +192,10 @@ RestaurantResult.deleteByLocationId = deleteByLocationId;
 MovieResults.tableName = 'movies';
 MovieResults.lookup = lookup;
 MovieResults.deleteByLocationId = deleteByLocationId
+
+MeetupResults.tableName = 'meetups';
+MeetupResults.lookup = lookup;
+MeetupResults.deleteByLocationId = deleteByLocationId
 
 // +++++++++++++++++++++++++++
 // HELPER FUNCTIONS START HERE
@@ -310,6 +345,46 @@ function getMovies(request, response) {
     }
   })
 }
+
+// //Meetups helper function
+function getMeetups(request, response) {
+  MeetupResults.lookup({
+    tableName: MeetupResults.tableName,
+    id: request.query.data.id,
+    cacheMiss: function () {
+
+      const url = `https://api.meetup.com/find/upcoming_events?key=${process.env.MEETUP_API_Key}&lon=${request.query.data.longitude}&page=5&lat=${request.query.data.latitude}`;
+
+      superagent.get(url)
+        .then(result => {
+          const meetupSummary = result.body.results.map(meetup => {
+            const eachMeetup = new MeetupResults(meetup);
+            eachMeetup.save(request.query.data.id);
+            return eachMeetup;
+          });
+          response.send(meetupSummary);
+        })
+        .catch(error => processError(error, response));
+    },
+    cacheHit: function (resultsArray) {
+      let ageOfData = (Date.now() - resultsArray[0].created_at) / (1000 * 60);
+
+      if (ageOfData > 30) {
+        deleteByLocationId(
+          MeetupResults.tableName,
+          request.query.data.id
+        );
+      } else {
+        response.send(resultsArray);
+      }
+    }
+  })
+}
+
+
+
+
+
 
 // Empty the contents of a table if data is old
 function deleteByLocationId(table, city) {
