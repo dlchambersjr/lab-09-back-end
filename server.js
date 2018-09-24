@@ -15,6 +15,7 @@ client.connect();
 
 //Error handling for database
 client.on('error', err => console.error(err));
+
 // Tells express to use 'cors' for cross-origin resource sharing
 app.use(cors());
 
@@ -36,7 +37,7 @@ app.listen(PORT, () => console.log(`LAB-09 - Listening on ${PORT}`));
 // CONSTRUCTOR FUNCTIONS ANS PROTOTYPES START HERE //
 // ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-// Contructor function for Google API
+// Constructor and prototype for Google API
 function LocationResults(search, location) {
   this.search_query = search;
   this.formatted_query = location.body.results[0].formatted_address;
@@ -58,22 +59,7 @@ LocationResults.prototype = {
   }
 };
 
-LocationResults.lookupLocation = (location) => {
-  const SQL = `SELECT * FROM locations WHERE search_query=$1;`;
-  const values = [location.query]
-
-  return client.query(SQL, values)
-    .then(result => {
-      if (result.rowCount > 0) {
-        location.cacheHit(result.rows[0]);
-      } else {
-        location.cacheMiss();
-      }
-    })
-    .catch(console.error);
-}
-
-// Constructor function for Darksky API
+// Constructor and prototype for Darksky API
 function WeatherResult(weather) {
   this.tableName = 'weathers';
   this.time = new Date(weather.time * 1000).toString().slice(0, 15);
@@ -89,7 +75,7 @@ WeatherResult.prototype = {
   }
 };
 
-// Constructor function for Yelp API
+//Constructor and prototype for Yelp API
 function RestaurantResult(restaurant) {
   this.tableName = 'restaurants';
   this.name = restaurant.name;
@@ -117,7 +103,7 @@ RestaurantResult.prototype = {
   }
 };
 
-//Constructor function for The Movie Database API
+//Constructor and prototype for The Movie Database API
 function MovieResults(movie) {
   this.tableName = 'movies';
   this.title = movie.title;
@@ -149,7 +135,7 @@ MovieResults.prototype = {
   }
 };
 
-//Constructor function for Meetup API
+//Constructor and prototype for Meetup API
 function MeetupResults(meetup) {
   this.tableName = 'meetups';
   this.name = meetup.name;
@@ -175,6 +161,7 @@ MeetupResults.prototype = {
   }
 };
 
+//Constructor and prototype for The Hiking Project
 function TrailsResults(trail) {
   this.tableName = 'trails';
   this.name = trail.name;
@@ -237,7 +224,23 @@ TrailsResults.deleteByLocationId = deleteByLocationId;
 // HELPER FUNCTIONS START HERE
 // +++++++++++++++++++++++++++
 
-// Generic lookup helper function
+// This lookup helper function is unique to the Google API
+LocationResults.lookupLocation = (location) => {
+  const SQL = `SELECT * FROM locations WHERE search_query=$1;`;
+  const values = [location.query]
+
+  return client.query(SQL, values)
+    .then(result => {
+      if (result.rowCount > 0) {
+        location.cacheHit(result.rows[0]);
+      } else {
+        location.cacheMiss();
+      }
+    })
+    .catch(console.error);
+}
+
+// Generic lookup helper function for remaining APIS
 function lookup(options) {
 
   const SQL = `SELECT * FROM ${options.tableName} WHERE location_id=$1;`;
@@ -254,8 +257,7 @@ function lookup(options) {
     .catch(error => processError(error));
 }
 
-// Google helper function refactored prior to lab start.
-
+// This function gets the information from GOOGLE
 function getLocation(request, response) {
   LocationResults.lookupLocation({
     query: request.query.data,
@@ -278,7 +280,7 @@ function getLocation(request, response) {
   })
 }
 
-// Weather helper function
+// This function gets the information from DARK SKY
 function getWeather(request, response) {
   WeatherResult.lookup({
     tableName: WeatherResult.tableName,
@@ -312,7 +314,7 @@ function getWeather(request, response) {
   });
 }
 
-// Restraurant helper function
+// This function gets the information from YELP
 function getRestaurants(request, response) {
   RestaurantResult.lookup({
     tableName: RestaurantResult.tableName,
@@ -347,7 +349,7 @@ function getRestaurants(request, response) {
   });
 }
 
-//Movies helper function
+// This function gets the information from THE MOVIE DATABASE
 function getMovies(request, response) {
 
   MovieResults.lookup({
@@ -383,7 +385,7 @@ function getMovies(request, response) {
   })
 }
 
-//Meetups helper function
+// This function gets the information from MEETUP
 function getMeetups(request, response) {
   MeetupResults.lookup({
     tableName: MeetupResults.tableName,
@@ -418,6 +420,7 @@ function getMeetups(request, response) {
   })
 }
 
+// This function gets the information from THE HIKING PROJECT
 function getTrails(request, response) {
   TrailsResults.lookup({
     tableName: TrailsResults.tableName,
