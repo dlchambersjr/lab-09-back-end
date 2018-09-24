@@ -444,6 +444,11 @@ function getMeetups(request, response) {
 }
 
 function getTrails(request, response) {
+
+  console.log('+++++++++++++++++++++++++++++\n\n')
+  console.log('STARTING getTrails');
+  console.log('\n\n+++++++++++++++++++++++++++++')
+
   TrailsResults.lookup({
     tableName: TrailsResults.tableName,
     id: request.query.data.id,
@@ -452,9 +457,16 @@ function getTrails(request, response) {
 
       const url = `https://www.hikingproject.com/data/get-trails?lat=${request.query.data.latitude}&lon=${request.query.data.longitude}&maxDistance=10&key=${process.env.HIKING_PROJECT_API_KEY}`;
 
+
       superagent.get(url)
         .then(result => {
           const trailsSummary = result.body.trails.map(trail => {
+
+            console.log('+++++++++++++++++++++++++++++\n\n')
+            console.log(trail);
+            console.log('\n\n+++++++++++++++++++++++++++++')
+
+
             const eachTrail = new TrailsResults(trail);
             eachTrail.save(request.data.query.id);
             return eachTrail;
@@ -477,9 +489,6 @@ function getTrails(request, response) {
     }
   })
 }
-
-
-
 
 // Empty the contents of a table if data is old
 function deleteByLocationId(table, city) {
