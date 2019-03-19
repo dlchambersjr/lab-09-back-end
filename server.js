@@ -1,4 +1,7 @@
 'use strict';
+// Allows us to use the .env file
+require('dotenv').config();
+
 // These variables create the connection to the dependencies.
 const express = require('express');
 const superagent = require('superagent');
@@ -6,8 +9,6 @@ const cors = require('cors');
 const pg = require('pg');
 const app = express();
 
-// Allows us to use the .env file
-require('dotenv').config();
 
 // Setup database by creating a client instance, pointing it at our database
 const client = new pg.Client(process.env.DATABASE_URL);
@@ -39,6 +40,7 @@ app.listen(PORT, () => console.log(`LAB-09 - Listening on ${PORT}`));
 
 // Constructor and prototype for Google API
 function LocationResults(search, location) {
+  // console.log('Line 42', search, location);
   this.search_query = search;
   this.formatted_query = location.body.results[0].formatted_address;
   this.latitude = location.body.results[0].geometry.location.lat;
@@ -229,6 +231,8 @@ LocationResults.lookupLocation = (location) => {
   const SQL = `SELECT * FROM locations WHERE search_query=$1;`;
   const values = [location.query]
 
+  console.log('232', location.query);
+
   return client.query(SQL, values)
     .then(result => {
       if (result.rowCount > 0) {
@@ -263,10 +267,13 @@ function getLocation(request, response) {
     query: request.query.data,
     cacheMiss: function () {
 
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GOOGLE_API_KEY}`;
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
+
+      console.log('line 271', url);
 
       return superagent.get(url)
         .then(result => {
+          console.log('line 273', result.body)
           const location = new LocationResults(request.query.data, result);
           location.save()
             .then(location => response.send(location)
@@ -287,7 +294,7 @@ function getWeather(request, response) {
     id: request.query.data.id,
     cacheMiss: function () {
 
-      const url = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
+      const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
 
       superagent.get(url)
         .then(result => {
@@ -357,7 +364,7 @@ function getMovies(request, response) {
     id: request.query.data.id,
     cacheMiss: function () {
 
-      const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_APIv3_KEY}&query=${request.query.data.search_query}`;
+      const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${request.query.data.search_query}`;
 
       superagent.get(url)
         .then(result => {
@@ -428,7 +435,7 @@ function getTrails(request, response) {
 
     cacheMiss: function () {
 
-      const url = `https://www.hikingproject.com/data/get-trails?lat=${request.query.data.latitude}&lon=${request.query.data.longitude}&maxDistance=10&key=${process.env.HIKING_PROJECT_API_KEY}`;
+      const url = `https://www.hikingproject.com/data/get-trails?lat=${request.query.data.latitude}&lon=${request.query.data.longitude}&maxDistance=10&key=${process.env.HIKING_API_KEY}`;
 
 
       superagent.get(url)
@@ -443,7 +450,7 @@ function getTrails(request, response) {
         .catch(error => processError(error, response));
     },
     cacheHit: function (resultsArray) {
-      let ageOfData = (Date.now() - resultsArray[0].created_at) / 1000(1000 * 60);
+      let ageOfData = (Date.now() - resultsArray[0].created_at) / (1000 * 60);
 
       if (ageOfData > 30) {
         deleteByLocationId(
