@@ -67,6 +67,8 @@ function WeatherResult(weather) {
   this.time = new Date(weather.time * 1000).toString().slice(0, 15);
   this.forecast = weather.summary;
   this.created_at = Date.now();
+  this.icon = `<img src="http://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/128/Status-weather-clouds-icon.png"/>`;
+  console.log(this.icon);
 }
 
 WeatherResult.prototype = {
@@ -142,7 +144,7 @@ function MeetupResults(meetup) {
   this.tableName = 'meetups';
   this.name = meetup.name;
   this.link = meetup.link;
-  this.host = meetup.venue.name;
+  this.host = meetup.venue.name || 'TBD'
   this.creation_date = new Date(meetup.created).toString().slice(0, 15);
   this.created_at = Date.now();
 }
@@ -303,6 +305,7 @@ function getWeather(request, response) {
             dailySumary.save(request.query.data.id);
             return dailySumary;
           });
+          console.log(weatherSummary[0]);
           response.send(weatherSummary);
         })
         .catch(error => processError(error, response));
